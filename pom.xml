@@ -181,6 +181,8 @@
                 <configuration>
                     <failBuildOnCVSS>0</failBuildOnCVSS>
                     <autoUpdate>true</autoUpdate>
+                    <nvdApiDelay>15000</nvdApiDelay>
+                    <nvdMaxRetryCount>10</nvdMaxRetryCount>
                     <formats>
                         <format>HTML</format>
                         <format>JSON</format>
