@@ -90,10 +90,11 @@ jobs:
           path: target/site/jacoco/
 
       - name: SonarQube Scan
-        run: mvn sonar:sonar -Dsonar.qualitygate.wait=true
+        run: mvn org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar -Dsonar.qualitygate.wait=true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
 
       - name: OWASP Dependency Check
         run: mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=0
