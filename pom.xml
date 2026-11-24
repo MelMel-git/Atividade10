@@ -181,7 +181,6 @@
                 <configuration>
                     <failBuildOnCVSS>0</failBuildOnCVSS>
                     <autoUpdate>true</autoUpdate>
-                    <nvdApiKeyEnvironmentVariable>NVD_API_KEY</nvdApiKeyEnvironmentVariable>
                     <formats>
                         <format>HTML</format>
                         <format>JSON</format>
