@@ -6,22 +6,43 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'mvn clean package'
+                sh 'mvn clean package -DskipTests'
             }
         }
 
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-                junit 'target/surefire-reports/*.xml'
+        stage('Tests') {
+            parallel {
+
+                stage('Unit Tests') {
+                    steps {
+                        sh 'mvn test'
+                    }
+                }
+
+                stage('Integration Tests') {
+                    steps {
+                        dir('integration-workspace') {
+                            checkout scm
+                            sh 'mvn clean test-compile failsafe:integration-test failsafe:verify -Pintegration-tests'
+                        }
+                    }
+                }
             }
         }
 
         stage('Quality Analysis') {
             steps {
-                sh 'mvn checkstyle:check'
-                sh 'mvn pmd:check'
-                sh 'mvn jacoco:report'
+                sh 'mvn clean verify -Pintegration-tests'
+                sh 'mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=0'
+            }
+        }
+
+        stage('Manual Approval') {
+            when {
+                branch 'main'
+            }
+            steps {
+                input message: 'Autorizar deploy para staging?'
             }
         }
 
@@ -29,21 +50,30 @@ pipeline {
             when {
                 branch 'main'
             }
-
             steps {
-                sh 'echo "Preparando deploy para staging"'
+                sh 'docker build -t myapp:${GIT_COMMIT} .'
+                sh 'kubectl apply -f k8s/deployment.yaml'
+                sh 'kubectl rollout status deployment/myapp --timeout=120s'
+            }
+
+            post {
+                failure {
+                    sh 'kubectl rollout undo deployment/myapp'
+                }
             }
         }
     }
 
     post {
-        failure {
-            echo 'Build Failed! Iniciando procedimento de rollback.'
+        always {
+            junit allowEmptyResults: true,
+                  testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml'
+        }
 
-            sh '''
-                echo "Rollback solicitado."
-                echo "A restauração real depende da configuração do ambiente."
-            '''
+        failure {
+            echo 'Pipeline executado com falha!'
+            slackSend color: 'danger',
+                      message: "Falha no pipeline ${env.JOB_NAME} #${env.BUILD_NUMBER}"
         }
 
         success {
