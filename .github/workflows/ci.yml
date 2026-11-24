@@ -83,9 +83,6 @@ jobs:
       - name: Verify Tests, Coverage and Code Quality
         run: mvn clean verify -Pintegration-tests
 
-      - name: OWASP Dependency Check
-        run: mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=0
-
       - name: Upload JaCoCo Report
         uses: actions/upload-artifact@v4
         with:
@@ -97,6 +94,9 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: OWASP Dependency Check
+        run: mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=0
 
   deploy-staging:
     needs: quality-check
