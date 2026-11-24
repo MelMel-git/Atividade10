@@ -56,6 +56,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Verify Docker
+        run: docker info
+
       - name: Run Integration Tests
         run: mvn clean test-compile org.apache.maven.plugins:maven-failsafe-plugin:3.2.5:integration-test org.apache.maven.plugins:maven-failsafe-plugin:3.2.5:verify -Pintegration-tests
 
