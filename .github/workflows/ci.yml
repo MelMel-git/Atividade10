@@ -99,16 +99,21 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      - name: Cache OWASP Database
-        if: success() || failure()
-        uses: actions/cache@v4
+      - name: Restore OWASP Database
+        uses: actions/cache/restore@v4
         with:
           path: ~/.m2/repository/org/owasp/dependency-check-data
-          key: owasp-nvd-${{ runner.os }}-v1
+          key: owasp-nvd-${{ runner.os }}-v2
 
       - name: OWASP Dependency Check
-        if: success() || failure()
-        run: mvn org.owasp:dependency-check-maven:12.2.2:check -DfailBuildOnCVSS=0
+        run: mvn org.owasp:dependency-check-maven:12.2.2:check -DfailBuildOnCVSS=0 -DdataDirectory=$HOME/.m2/repository/org/owasp/dependency-check-data
+
+      - name: Save OWASP Database
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: owasp-nvd-${{ runner.os }}-v2
 
       - name: Upload OWASP Report
         if: always()
